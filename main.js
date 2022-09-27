@@ -1,23 +1,70 @@
-import './style.css'
-import javascriptLogo from './javascript.svg'
-import { setupCounter } from './counter.js'
+import './style.css';
+import * as THREE from 'three';
 
-document.querySelector('#app').innerHTML = `
-  <div>
-    <a href="https://vitejs.dev" target="_blank">
-      <img src="/vite.svg" class="logo" alt="Vite logo" />
-    </a>
-    <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript" target="_blank">
-      <img src="${javascriptLogo}" class="logo vanilla" alt="JavaScript logo" />
-    </a>
-    <h1>Hello Vite!</h1>
-    <div class="card">
-      <button id="counter" type="button"></button>
-    </div>
-    <p class="read-the-docs">
-      Click on the Vite logo to learn more
-    </p>
-  </div>
-`
+const scene = new THREE.Scene();
 
-setupCounter(document.querySelector('#counter'))
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+
+const renderer = new THREE.WebGLRenderer({
+  canvas: document.querySelector('#bg'),
+});
+
+renderer.setPixelRatio(window.devicePixelRatio);
+renderer.setSize(window.innerWidth, window.innerHeight);
+camera.position.setZ(35);
+
+renderer.render(scene, camera);
+
+// Torus
+const geometry = new THREE.TorusGeometry(16, 4, 12, 100);
+const material = new THREE.MeshStandardMaterial({ color: 0x857b25 });
+const torus = new THREE.Mesh(geometry, material);
+scene.add(torus);
+
+// Lights
+var plx = 0;
+var speed = 0.6;
+var plxMax = 20;
+var moveRight = true;
+const pointLight = new THREE.PointLight(0x2a13ed, 5);
+pointLight.position.set(plx, 0, 0);
+const ambientLight = new THREE.AmbientLight(0xffffff, 1);
+scene.add(pointLight, ambientLight);
+
+// Helpers
+const lightHelper = new THREE.PointLightHelper(pointLight)
+scene.add(lightHelper)
+
+function rotateTorus() {
+  torus.rotation.x += 0.01;
+  torus.rotation.y += 0.005;
+  torus.rotation.z += 0.01;
+}
+
+function animatePointLight() {
+  if (moveRight) {
+    plx += speed;
+    if ( plx > plxMax) {
+      moveRight = false;
+    }
+  }
+  else {
+    plx -= speed;
+    if ( plx < -plxMax) {
+      moveRight = true;
+    }
+  }
+  pointLight.position.set(plx, 0, 0);
+}
+
+
+function animate() {
+  requestAnimationFrame(animate);
+
+  rotateTorus();
+  animatePointLight();
+
+  renderer.render(scene, camera);
+}
+
+animate();
